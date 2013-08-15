@@ -1,0 +1,10 @@
+\BOOKMARK [1][-]{section.1}{Least Squares Curve Fitting}{}% 1
+\BOOKMARK [1][-]{section.2}{The Linear Case}{}% 2
+\BOOKMARK [1][-]{section.3}{Polynomial Least Squares}{}% 3
+\BOOKMARK [1][-]{section.4}{An Example}{}% 4
+\BOOKMARK [1][-]{section.5}{Programming Note}{}% 5
+\BOOKMARK [1][-]{section.6}{Gaussian Elimination}{}% 6
+\BOOKMARK [2][-]{subsection.6.1}{Gaussian Elimination without Pivoting}{section.6}% 7
+\BOOKMARK [2][-]{subsection.6.2}{Gaussian Elimination with Pivoting}{section.6}% 8
+\BOOKMARK [2][-]{subsection.6.3}{Substitution}{section.6}% 9
+\BOOKMARK [1][-]{section.7}{Error Analysis}{}% 10

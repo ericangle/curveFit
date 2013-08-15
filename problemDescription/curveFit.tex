@@ -1,0 +1,237 @@
+\documentclass[10pt]{article}
+
+\usepackage{graphicx, amssymb, amsmath, hyperref}
+
+\topmargin      	= -0.25in
+\headheight		= 0in
+\headsep		= 0in
+\topskip		= 0in
+\oddsidemargin   	= -0.25in
+\evensidemargin   	= -0.25in
+\textheight  		= 9.5in
+\textwidth      	= 7in
+\footskip		= 0in
+
+\pagestyle{empty}
+
+\renewcommand{\baselinestretch}{1.0}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \bf Least Squares Curve Fitting \& Gaussian Elimination} \\
+\end{center}
+\begin{center}
+Eric Angle \\
+\today
+\end{center}
+
+\section{Least Squares Curve Fitting}
+\noindent We aim to approximate a given function $y\left(x\right)$ over an interval $x_1$ to $x_2$ by the function $f\left(x,a_i\right)$,
+\begin{equation*}
+y\left(x\right) = f\left(x,a_i\right) + \epsilon\left(x\right),
+\end{equation*}
+\noindent where $a_i$ are parameters and $\epsilon\left(x\right)$ is the error. To optimize the approximation, we minimize a suitably chosen norm of the error\footnote{Replace $\int_{x_1}^{x_2} dx$ with $\sum_{x_k = x_1}^{x_2}$ and $x$ with $x_k$ for the discrete case, where we're interested in a set of points $x_i$.},
+\begin{equation*}
+U = \int_{x_1}^{x_2} dx \ \epsilon^2\left(x\right),
+\end{equation*}
+\noindent by setting to zero $\partial U / \partial a_i$:
+\begin{equation}\label{general}
+0 = \frac{\partial U}{\partial a_i} = 2 \int_{x_1}^{x_2} dx \ \epsilon \ \frac{\partial \epsilon}{\partial a_i} = - 2 \int_{x_1}^{x_2} dx \left(y - f\right) \frac{\partial f}{\partial a_i} \ \ \ \Rightarrow \ \ \ \int_{x_1}^{x_2} dx \ f \ \frac{\partial f}{\partial a_i} = \int_{x_1}^{x_2} dx \ y \ \frac{\partial f}{\partial a_i}.
+\end{equation}
+%%%%%
+\section{The Linear Case}
+\noindent If $f\left(x, a_i\right)$ is linear in $a_i$, 
+\begin{equation}\label{linear}
+f\left(x,a_i\right) = \sum_i a_i g_i\left(x\right),
+\end{equation}
+\noindent for some functions $g_i$, equation \ref{general} reduces to the linear system of equations
+\begin{equation*}
+\sum_j \left(\int_{x_1}^{x_2} dx \ g_i \ g_j\right) a_j = \int_{x_1}^{x_2} dx \ g_i \ y \ \ \ \mbox{or} \ \ \ \sum_{j} m_{i j} a_j = b_i,
+\end{equation*}
+\noindent where
+\begin{equation}\label{formula}
+m_{i j} = m_{j i} = \int_{x_1}^{x_2} dx \ g_i \ g_j \ \ \ \mbox{and} \ \ \ b_i = \int_{x_1}^{x_2} dx \ g_i \ y.
+\end{equation}
+%%%%%
+\section{Polynomial Least Squares}
+\noindent If in equation \ref{linear} we choose
+\begin{equation*}
+g_i\left(x\right) = x^i, \ \ \ \mbox{with} \ \ \ i = 0, 1, ..., n,
+\end{equation*}
+\noindent so that we approximate $y$ by an $n$ degree polynomial, equation \ref{formula} gives
+\begin{equation}\label{poly}
+m_{i j} = \int_{x_1}^{x_2} dx \ x^{i + j} = \frac{1}{i + j + 1} \left(x_2^{i + j + 1} - x_1^{i + j + 1} \right) \ \ \ \mbox{and} \ \ \ b_i = \int_{x_1}^{x_2} dx \ x^i \ y\left(x\right).
+\end{equation}
+\section{An Example}
+\noindent We will henceforth consider the specific example $y\left(x\right) = \sin x$, $x_1 = 0$, and $x_2 = 1$. Equation \ref{poly}  then reduces to
+\begin{equation}\label{spec}
+m_{i j} = \frac{1}{i + j + 1} = h_{\left(i+1\right)\left(j+1\right)} \ \ \ \mbox{and} \ \ \ b_i = \int_{0}^{1} dx \ x^i \sin x,
+\end{equation}
+\noindent where $h_{i j} = 1 / \left(i + j - 1\right)$ is the Hilbert matrix. We can develop a recursive solution for $b_i$  in equation \ref{spec} by defining (here, $j = \sqrt{-1}$)
+\begin{eqnarray*}
+c_i + j b_i = d_i &=& \int_0^1 dx \ x^i e^{j x} = \int_0^1 dx \ x^i \cos x + j \int_0^1 dx \ x^i \sin x \\
+&=& - j \int_0^1 dx \left[\frac{d}{dx}\left(x^i e^{j x}\right) - i x^{i-1} e^{j x}\right] \\
+&=& - j e^j + j i d_{i - 1} \\
+&=& \sin \left(1\right) - i b_{i - 1} + j\left[-\cos\left(1\right) + i c_{i - 1}\right].
+\end{eqnarray*}
+\noindent This gives
+\begin{equation}\label{b}
+b_i = - \cos\left(1\right) + i c_{i - 1} = - \cos\left(1\right) + i \left[\sin\left(1\right) - \left(i-1\right) b_{i-2}\right] = - \cos\left(1\right) + i \sin\left(1\right) - i \left(i-1\right) b_{i-2},
+\end{equation}
+\noindent which determines $b_i$ for $i>1$, with
+\begin{equation*}
+b_0 = \int_0^1 dx \ \sin x = 1 - \cos\left(1\right) \ \ \ \mbox{and} \ \ \   b_1 = \int_0^1 dx \ x \sin x = \int_0^1 dx \left[\cos x - \frac{d}{dx}\left(x \cos x\right)\right] = \sin\left(1\right) - \cos\left(1\right).
+\end{equation*}
+%%%%%%%
+\section{Programming Note}
+\noindent With $m_{i j}$ in equation \ref{spec} and $b_i$ in equation \ref{b}, it remains to solve for $a_i$ in
+\begin{equation*}
+\sum_{j = 0}^n m_{i j} a_j = b_i.
+\end{equation*}
+\noindent For programming purposes, it will be convenient to define $M_{i j} = m_{\left(i-1\right)\left(i-1\right)} = h_{i j}$, $A_i = a_{i - 1}$, and $B_i = b_{i - 1}$, and solve for $A_i$ in
+\begin{equation}\label{progeq}
+\sum_{j = 1}^{n+1} M_{i j} A_j = B_i.
+\end{equation}
+\noindent Equation \ref{b} must then be modified,
+\begin{equation*}
+B_i = b_{i-1} = - \cos\left(1\right) + \left(i-1\right) \sin\left(1\right) - \left(i-1\right) \left(i-2\right) b_{i-3} = - \cos\left(1\right) + \left(i-1\right) \sin\left(1\right) - \left(i^2 - 3 i + 2\right) B_{i-2},
+\end{equation*}
+\noindent where $B_1 = b_0 = 1 - \cos\left(1\right)$ and $B_2 = b_1 = \sin\left(1\right) - \cos\left(1\right)$. \\
+
+\noindent The solutions $A_i$ from equation \ref{progeq} will generate an approximation
+\begin{equation*}
+\sin \left(x\right) \approx \sum_{i=1}^{n+1} A_{i} x^{i-1}
+\end{equation*}
+\noindent from $x=0$ to 1.
+
+\section{Gaussian Elimination}
+\noindent We aim to numerically solve equation \ref{progeq} by implementing Gaussian elimination with and without partial pivoting. The algorithms for those methods are as follows.
+
+\subsection{Gaussian Elimination without Pivoting}\label{gewp}
+\noindent Gaussian elimination without pivoting is implemented as follows: \\ \\
+\noindent {\bf{DO}} $k = 1$ to $n$
+\begin{quote}
+\noindent {\underline{Loop through rows.}} \\
+\noindent {\bf{DO}} $i = k+1$ to $n+1$
+\begin{quote}
+\noindent $M\left(i,k\right) = M\left(i,k\right)/M\left(k,k\right)$ (This would be zero, so we'll store the ratio here.) \\
+\noindent {\underline{Loop through columns.}} \\
+\noindent {\bf{DO}} $j = k+1$ to $n+1$
+\begin{quote}
+\noindent $M\left(i,j\right) = M\left(i,j\right) - M\left(i,k\right) M\left(k,j\right)$
+\end{quote}
+\noindent {\bf{END DO}}
+\end{quote}
+\noindent $B\left(i\right) = B\left(i\right) - M\left(i,k\right) B\left(k\right)$ \\
+\noindent {\bf{END DO}}
+\end{quote}
+\noindent {\bf{END DO}}
+
+\subsection{Gaussian Elimination with Pivoting}
+\noindent Gaussian elimination with pivoting is implemented as follows: \\ \\
+{\bf{DO}} $k = 1$ to $n$
+\begin{quote}
+\noindent {\underline{Determine pivot element.}} \\
+\noindent $maxvalue = 0$ \\
+{\bf{DO}} $i = k$ to $n+1$
+\begin{quote}
+{\bf{IF}} $M\left(i,k\right) > maxvalue$
+\begin{quote}
+\noindent $maxvalue = M\left(i,k\right)$ \\
+\noindent $maxindex = i$
+\end{quote}
+\noindent {\bf{END IF}}
+\end{quote}
+\noindent {\bf{END DO}} \\
+\noindent {\underline{Swap pivot row with top row.}} \\
+\noindent {\bf{IF}} $maxindex \ne k$
+\begin{quote}
+{\bf{DO}} $j = 1$ to $n+1$
+\begin{quote}
+\noindent $swap = M\left(maxindex,j\right)$ \\
+\noindent $M\left(maxindex,j\right) = M\left(k,j\right)$ \\
+\noindent $M\left(k,j\right) = swap$
+\end{quote}
+\noindent {\bf{END DO}} \\
+\noindent $swap = B\left(maxindex\right)$ \\
+\noindent $B\left(maxindex\right) = B\left(k\right)$ \\
+\noindent $B\left(k\right) = swap$
+\end{quote}
+\noindent {\bf{END IF}} \\
+\noindent {\underline{Insert Gaussian elimination without pivoting from section \ref{gewp}.}}
+\end{quote}
+\noindent {\bf{END DO}}
+
+\subsection{Substitution}
+\noindent Both Gaussian elimination methods are followed by the same substitution method: \\
+
+\noindent $A\left(n+1\right) = B\left(n+1\right)/M\left(n+1,n+1\right)$ \\
+\noindent {\underline{Loop backwards, starting at bottom row.}} \\
+\noindent {\bf{DO}} $k = 1$ to $n$
+\begin{quote}
+\noindent $i = n - k + 1$ \\
+\noindent $sum = B\left(i\right)$
+\begin{quote}
+\noindent {\bf{DO}} $j = i+1$ to $n+1$
+\begin{quote}
+\noindent $sum = sum - M\left(i,j\right) A\left(j\right)$
+\end{quote}
+\noindent {\bf{END DO}}
+\end{quote}
+\noindent $A\left(i\right) = sum/M\left(i,i\right)$
+\end{quote}
+\noindent {\bf{END DO}}
+
+\section{Error Analysis}
+\noindent We should have some idea of the number of digits that are meaningful in our results. For simplicity, consider the error $\delta A$ due to an error $\delta B$ in equation \ref{progeq}:
+\begin{equation*}
+M\left(A+\delta A\right) = B + \delta B \ \ \ \Rightarrow \ \ \ M \delta A = \delta B \ \ \ \Rightarrow \ \ \ \delta A = M^{-1} \delta B \ \ \ \Rightarrow \ \ \ \left| \delta A \right| \le \left| \left| M^{-1} \right| \right| \left| \delta B \right|.
+\end{equation*}
+\noindent This result, combined with
+\begin{equation*}
+M A = B \ \ \ \Rightarrow \ \ \ \left| \left| M \right| \right|  \left| A \right| \ge \left|  B \right| \ \ \ \Rightarrow \ \ \ \frac{1}{\left| A \right|} \ge \frac{\left| \left| M \right| \right|}{\left| B \right|},
+\end{equation*}
+\noindent yields
+\begin{equation}\label{error}
+\frac{ \left| \delta A  \right| }{\left| A \right|} \le \frac{\left| \left| M^{-1} \right| \right| \left| \delta B  \right|}{\left|A\right|} \le \left| \left| M \right| \right| \left| \left| M^{-1} \right| \right| \frac{ \left| \delta B \right| }{\left| B \right|} = K\left(M\right) \frac{ \left| \delta B \right| }{\left| B \right|}.
+\end{equation}
+\noindent Now, $\left| \delta A \right| / \left| A \right| = 10^{-d}$, where $d$ is the number of meaningful digits in $A$, while $\left| \delta B \right| / \left| B \right| =\epsilon = 2^{-53} = 1.11 \times 10^{-16}$ using double precision. Using equation \ref{error},
+\begin{equation*}
+10^{-d} \approx K\left(M\right) \epsilon \ \ \ \Rightarrow \ \ \ d \approx \log_{10} \left(1/\epsilon\right) - \log_{10} K\left(M\right).
+\end{equation*}
+\noindent Therefore, no digits are meaningful when $K\left(M\right) \approx 1/\epsilon = 9 \times 10^{15}$. Below is a table of condition numbers $K\left(M\left(n+1\right) \times \left(n+1\right)\right)$ and meaningful digits $d$ for polynomial degrees $n$. \\
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+$n$ & $K\left(M\right)$ & $d$ \\
+\hline
+1 & $1.9 \times 10^1$ & 33.8 \\
+\hline
+2 & $5.2 \times 10^2$ & 30.5 \\
+\hline
+3 & $1.6 \times 10^4$ & 27.1 \\
+\hline
+4 & $4.8 \times 10^5$ & 23.7 \\
+\hline
+5 & $1.5 \times 10^7$ & 20.2 \\
+\hline
+6 & $4.8 \times 10^8$ & 16.8 \\
+\hline
+7 & $1.5 \times 10^{10}$ & 13.3 \\
+\hline
+8 & $4.9 \times 10^{11}$ & 9.8 \\
+\hline
+9 & $1.6 \times 10^{13}$ & 6.3 \\
+\hline
+10 & $5.2 \times 10^{14}$ & 2.8 \\
+\hline
+11 & $1.7 \times 10^{16}$ & -0.6 \\
+\hline
+12 & $5.6 \times 10^{17}$ & -4.1 \\
+\hline
+\end{tabular}
+\end{center}
+\noindent In practice, it was found that both Gaussian elimination methods fail at precisely $n=10$.
+
+\end{document}
