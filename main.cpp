@@ -1,3 +1,20 @@
+// Curve Fit
+
+// g++ main.cpp -o executable_name
+
+// Note about PDF explaining background
+
+// This program ...
+
+#include <iostream>
+using namespace std;
+
+int main() {
+  cout << "Hello world." << endl;
+  return 0;
+}
+
+/*
 	! LEAST.F
 	!
 	! This program uses Gaussian elimination with and without (partial) pivoting to solve
@@ -144,3 +161,4 @@
 		END DO
 	RETURN
 	END
+*/ 
