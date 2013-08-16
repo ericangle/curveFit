@@ -2,30 +2,22 @@
 
 // g++ main.cpp -o executable_name
 
-// Note about PDF explaining background
+// See problemDescription/curveFit.pdf
 
-// This program ...
+// This program uses Gaussian elimination with and without (partial) pivoting to solve
+// SUM_(j=1)^(n+1) M(i,j) A(j) = B(i), where M(i,j) = 1/(i+j-1) is the Hilbert matrix and
+// B(i) = int_0^1 dx x^i sin(x), to give a least squares n degree polynomial
+// approximation sin(x) = SUM_(i=1)^(n+1) A(i) x^(i-1) on the interval x = 0 to 1.
 
 #include <iostream>
 using namespace std;
 
 int main() {
-  cout << "Hello world." << endl;
-  return 0;
-}
+  
+
 
 /*
-	! LEAST.F
-	!
-	! This program uses Gaussian elimination with and without (partial) pivoting to solve
-	! SUM_(j=1)^(n+1) M(i,j) A(j) = B(i), where M(i,j) = 1/(i+j-1) is the Hilbert matrix and
-	! B(i) = int_0^1 dx x^i sin(x), to give a least squares n degree polynomial
-	! approximation sin(x) = SUM_(i=1)^(n+1) A(i) x^(i-1) on the interval x = 0 to 1.
-	! ---------------------------------------------------------------------
 
-	PROGRAM least
-
-	implicit none
 
 	integer i, j, k						! Loop variables
 	integer n, dim						! dim = n + 1, n = polynomial degree
@@ -80,29 +72,37 @@ int main() {
 
 	STOP
 	END
+*/
 
-	! Subroutine for Gaussian elimination without pivoting
+  return 0;
+}
+
+
+/* FUNCTION FOR SUBSTITUTION
+ 
+	! Subroutine for substitution
 	! --------------------------------------------------
-	SUBROUTINE gaussnopivot(M, A, B, dim)
+	SUBROUTINE sub(M, A, B, dim)
 		implicit none
 		integer dim, maxdim, i, j, k
 		parameter (maxdim=50)
-		double precision M(maxdim,maxdim), A(maxdim), B(maxdim)
+		double precision M(maxdim,maxdim), A(maxdim), B(maxdim), sum
 
-		DO k = 1, (dim-1)					! ELIMINATION
-			DO i = (k+1), dim				! Loops through rows.
-				M(i,k) = M(i,k)/M(k,k)		! This would be zero, so we'll store ratio here.
-				DO j = (k+1), dim			! Loops through columns.
-					M(i,j) = M(i,j) - M(i,k)*M(k,j)
-				END DO
-				B(i) = B(i) - M(i,k)*B(k)
+		A(dim) = B(dim)/M(dim,dim)
+		DO k = 1, (dim-1)
+			i = dim - k					! Loop backwards, starting at bottom row.
+			sum = B(i)
+			DO j = (i+1),dim
+				sum = sum - M(i,j)*A(j)
 			END DO
+			A(i) = sum/M(i,i)
 		END DO
-		CALL sub(M, A, B, dim)				! SUBSTITUTION
 	RETURN
 	END
+*/
 
-	! Subroutine for Gaussian elimination with partial pivoting
+/* FUNCTION FOR GAUSSIAN ELIMINATION WITH PARTIAL PIVOTING	
+! Subroutine for Gaussian elimination with partial pivoting
 	! --------------------------------------------------
 	SUBROUTINE gausspivot(M, A, B, dim)
 		implicit none
@@ -141,24 +141,30 @@ int main() {
 		CALL sub(M, A, B, dim)				! SUBSTITUTION
 	RETURN
 	END
+*/
 
-	! Subroutine for substitution
-	! --------------------------------------------------
-	SUBROUTINE sub(M, A, B, dim)
-		implicit none
-		integer dim, maxdim, i, j, k
-		parameter (maxdim=50)
-		double precision M(maxdim,maxdim), A(maxdim), B(maxdim), sum
+/* FUNCTION FOR GAUSSIAN ELIMINATION WITHOUT PARTIAL PIVOTING
 
-		A(dim) = B(dim)/M(dim,dim)
-		DO k = 1, (dim-1)
-			i = dim - k					! Loop backwards, starting at bottom row.
-			sum = B(i)
-			DO j = (i+1),dim
-				sum = sum - M(i,j)*A(j)
-			END DO
-			A(i) = sum/M(i,i)
-		END DO
-	RETURN
-	END
-*/ 
++  ! Subroutine for Gaussian elimination without pivoting
++  ! --------------------------------------------------
++  SUBROUTINE gaussnopivot(M, A, B, dim)
++    implicit none
++    integer dim, maxdim, i, j, k
++    parameter (maxdim=50)
++    double precision M(maxdim,maxdim), A(maxdim), B(maxdim)
++
++    DO k = 1, (dim-1)          ! ELIMINATION
++      DO i = (k+1), dim        ! Loops through rows.
++        M(i,k) = M(i,k)/M(k,k)    ! This would be zero, so we'll store ratio here.
++        DO j = (k+1), dim      ! Loops through columns.
++          M(i,j) = M(i,j) - M(i,k)*M(k,j)
++        END DO
++        B(i) = B(i) - M(i,k)*B(k)
++      END DO
++    END DO
++    CALL sub(M, A, B, dim)        ! SUBSTITUTION
++  RETURN
++  END
+
+
+*/
