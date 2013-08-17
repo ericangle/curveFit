@@ -5,14 +5,21 @@
 // See problemDescription/curveFit.pdf
 
 // This program uses Gaussian elimination with and without (partial) pivoting to solve
-// SUM_(j=1)^(n+1) M(i,j) A(j) = B(i), where M(i,j) = 1/(i+j-1) is the Hilbert matrix and
+// SUM_(j=0)^(n) M(i,j) A(j) = B(i), where M(i,j) = 1/(i+j+1) and
 // B(i) = int_0^1 dx x^i sin(x), to give a least squares n degree polynomial
-// approximation sin(x) = SUM_(i=1)^(n+1) A(i) x^(i-1) on the interval x = 0 to 1.
+// approximation sin(x) = SUM_(i=0)^(n) A(i) x^i on the interval x = 0 to 1.
+
+// const and pass by reference?
 
 #include <iostream>
 #include <cmath>
 #include <vector>
 using namespace std;
+
+// can probably combine these two
+void gaussNoPivot(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim);
+void gaussPivot(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim);
+void sub(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim);
 
 int main() {
   int n = 10;       // polynomial degree
@@ -52,67 +59,64 @@ int main() {
     }
   }
 
-/*
   // Determine A arrays
-  Anp
-  Ap
-*/
+  vector <double> Anp;
+  vector <double> Ap;
+
+  Anp.resize(dim);
+  Ap.resize(dim);
+
+  gaussNoPivot(Mnp, Anp, Bnp, dim);
+
+  cout << "A without pivoting:" << endl;
+  for (int i = 0; i < dim; i++) {
+    cout << "Anp[" << i << "] = " << Anp[i] << endl;
+  }
+
+  cout << "sin(x) = ";
+  for (int i = 0; i <= n; i++) {
+    cout << Anp[i] << " * x^" << i << " + ";
+  }
+
+  cout << endl;
+
 /*
-	CALL gaussnopivot(Mnp, Anp, Bnp, dim)	! Perform Gaussian elimination without pivoting
-	PRINT *, ' '
-	PRINT *, 'A(i = 1 to',dim,') without pivoting'
-	DO i = 1, dim						! Print Anp
-		WRITE (*,10) Anp(i)
-10		FORMAT(1PG22.14)
-	END DO
+  gaussPivot(Mp, Ap, Bp, dim);
 
-	CALL gausspivot(Mp, Ap, Bp, dim)		! Perform Gaussian elimination with pivoting
-	PRINT *, ' '
-	PRINT *, 'A(i = 1 to',dim,') with pivoting'
-	DO i = 1, dim						! Print Ap
-		WRITE (*,11) Ap(i)
-11		FORMAT(1PG22.14)
-	END DO
+  cout << "A with pivoting:" << endl;
+  for (int i = 0; i < dim; i++) {
+    cout << "Ap[" << i << "] = " << Ap[i] << endl;
+  }
 
-	PRINT *, ' '
-	PRINT *, 'Difference in A(i = 1 to',dim,') with and without pivoting'
-	DO i = 1, dim						! Print Anp
-		WRITE (*,12) Anp(i) - Ap(i)
-12		FORMAT(1PG22.14)
-	END DO
+  cout << "sin(x) = ";
+  for (int i = 0; i <= n; i++) {
+    cout << Ap[i] << " * x^" << i << " + ";
+  }
 
-	PRINT *, ' '
-
-	STOP
-	END
+  cout << "Difference in A with and without pivoting:" << endl;
+  for (int i = 0; i < dim; i++) {
+    cout << "Anp[" << i << "] - Ap[" << i << "] = " << Anp[i] - Ap[i] << endl;
+  }
 */
 
   return 0;
 }
 
 
-/* FUNCTION FOR SUBSTITUTION
- 
-	! Subroutine for substitution
-	! --------------------------------------------------
-	SUBROUTINE sub(M, A, B, dim)
-		implicit none
-		integer dim, maxdim, i, j, k
-		parameter (maxdim=50)
-		double precision M(maxdim,maxdim), A(maxdim), B(maxdim), sum
+void sub(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim) {
+  int i;
+  double sum;
+  A[dim-1] = B[dim-1]/M[dim-1][dim-1];
 
-		A(dim) = B(dim)/M(dim,dim)
-		DO k = 1, (dim-1)
-			i = dim - k					! Loop backwards, starting at bottom row.
-			sum = B(i)
-			DO j = (i+1),dim
-				sum = sum - M(i,j)*A(j)
-			END DO
-			A(i) = sum/M(i,i)
-		END DO
-	RETURN
-	END
-*/
+  // Loop backwards, starting at bottom row.
+  for (int i = dim-2; i >= 0; i--) { 
+    sum = B[i];
+    for (int j = i+1; j < dim; j++) {
+      sum = sum - M[i][j]*A[j];
+    }
+    A[i] = sum/M[i][i];
+  }
+}
 
 /* FUNCTION FOR GAUSSIAN ELIMINATION WITH PARTIAL PIVOTING	
 ! Subroutine for Gaussian elimination with partial pivoting
@@ -156,28 +160,15 @@ int main() {
 	END
 */
 
-/* FUNCTION FOR GAUSSIAN ELIMINATION WITHOUT PARTIAL PIVOTING
-
-+  ! Subroutine for Gaussian elimination without pivoting
-+  ! --------------------------------------------------
-+  SUBROUTINE gaussnopivot(M, A, B, dim)
-+    implicit none
-+    integer dim, maxdim, i, j, k
-+    parameter (maxdim=50)
-+    double precision M(maxdim,maxdim), A(maxdim), B(maxdim)
-+
-+    DO k = 1, (dim-1)          ! ELIMINATION
-+      DO i = (k+1), dim        ! Loops through rows.
-+        M(i,k) = M(i,k)/M(k,k)    ! This would be zero, so we'll store ratio here.
-+        DO j = (k+1), dim      ! Loops through columns.
-+          M(i,j) = M(i,j) - M(i,k)*M(k,j)
-+        END DO
-+        B(i) = B(i) - M(i,k)*B(k)
-+      END DO
-+    END DO
-+    CALL sub(M, A, B, dim)        ! SUBSTITUTION
-+  RETURN
-+  END
-
-
-*/
+void gaussNoPivot(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim) {
+  for (int k = 0; k < dim; k++) {       // Elimination
+    for (int i = k+1; i < dim; i++) {   // Loops through rows
+      M[i][k] = M[i][k]/M[k][k];        // This would be zero, so we'll store ratio here.
+      for (int j = k+1; j < dim; j++) { // Loops through columns.
+        M[i][j] = M[i][j] - M[i][k]*M[k][j];
+      }
+      B[i] = B[i] - M[i][k]*B[k];
+    }
+  }
+  sub(M, A, B, dim);
+}
