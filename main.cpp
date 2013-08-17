@@ -10,41 +10,54 @@
 // approximation sin(x) = SUM_(i=1)^(n+1) A(i) x^(i-1) on the interval x = 0 to 1.
 
 #include <iostream>
+#include <cmath>
+#include <vector>
 using namespace std;
 
 int main() {
-  
+  int n = 10;       // polynomial degree
+  int dim = n + 1;  // dimension of arrays
 
+  // Set B arrays
+  vector <double> Bnp;
+  vector <double> Bp;
+
+  Bnp.resize(dim);
+  Bp.resize(dim);
+
+  Bnp[0] = 1.0 - cos(1.0);
+  Bp[0] = Bnp[0];
+
+  Bnp[1] = sin(1.0) - cos(1.0);
+  Bp[1] = Bnp[1];
+ 
+  for (int i = 2; i < dim; i++) {
+    Bnp[i] = -cos(1.0) + ((double) i)*sin(1.0) - ((double) i)*((double) i - 1.0)*Bnp[i-2];
+    Bp[i] = Bnp[i];
+  }
+
+  // Set M arrays
+  vector <vector <double> > Mnp;
+  vector <vector <double> > Mp;
+
+  Mnp.resize(dim);
+  Mp.resize(dim);
+  
+  for (int i = 0; i < dim; i++) {
+    Mnp[i].resize(dim);
+    Mp[i].resize(dim);
+    for (int j = 0; j < dim; j++) {
+      Mnp[i][j] = 1.0/((double) i + (double) j + 1.0);
+      Mp[i][j] = Mnp[i][j];
+    }
+  }
 
 /*
-
-
-	integer i, j, k						! Loop variables
-	integer n, dim						! dim = n + 1, n = polynomial degree
-	integer maxdim					! Maximum potential value of dim
-	parameter (maxdim=50)
-	double precision Mnp(maxdim,maxdim), Anp(maxdim), Bnp(maxdim)	! No pivot arrays
-	double precision Mp(maxdim,maxdim), Ap(maxdim), Bp(maxdim)		! Pivot arrays
-	
-	PRINT *, 'Polynomial degree?'
-	READ *, n
-	dim = n + 1
-
-	Bnp(1) = 1.d0 - dcos(1.d0)			! With Bnp(1) & Bnp(2), Bnp(k) for k > 2 is given
-	Bnp(2) = dsin(1.d0) - dcos(1.d0)		! recursively in the below DO loop.
-
-	DO i = 3, dim						! Defines elements of Bnp(i>2)
-		Bnp(i) = - dcos(1.d0) + dble(i-1)*dsin(1.d0) - dble(i*i-3*i+2)*Bnp(i-2)
-	END DO
-
-	DO i = 1, dim						! Defines elements of Mnp
-		DO j = 1, dim
-			Mnp(i,j) = 1.d0/dble(i+j-1)
-			Mp(i,j) = Mnp(i,j)			! Creates duplicate M for use with pivoting
-		END DO
-		Bp(i) = Bnp(i)					! Creates duplicate B for use with pivoting
-	END DO
-
+  // Determine A arrays
+  Anp
+  Ap
+*/
+/*
 	CALL gaussnopivot(Mnp, Anp, Bnp, dim)	! Perform Gaussian elimination without pivoting
 	PRINT *, ' '
 	PRINT *, 'A(i = 1 to',dim,') without pivoting'
