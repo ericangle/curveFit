@@ -9,7 +9,9 @@
 // B(i) = int_0^1 dx x^i sin(x), to give a least squares n degree polynomial
 // approximation sin(x) = SUM_(i=0)^(n) A(i) x^i on the interval x = 0 to 1.
 
-// const and pass by reference?
+// To dos:
+// 1. const and pass by reference?
+// 2. calculate error, see where it breaks
 
 #include <iostream>
 #include <cmath>
@@ -22,7 +24,7 @@ void gaussPivot(vector <vector <double> > M, vector <double>& A, vector <double>
 void sub(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim);
 
 int main() {
-  int n = 10;       // polynomial degree
+  int n = 12;       // polynomial degree
   int dim = n + 1;  // dimension of arrays
 
   // Set B arrays
@@ -79,8 +81,8 @@ int main() {
   }
 
   cout << endl;
+  cout << endl;
 
-/*
   gaussPivot(Mp, Ap, Bp, dim);
 
   cout << "A with pivoting:" << endl;
@@ -93,11 +95,13 @@ int main() {
     cout << Ap[i] << " * x^" << i << " + ";
   }
 
-  cout << "Difference in A with and without pivoting:" << endl;
+  cout << endl;
+  cout << endl;
+
+  cout << "Percent difference in A with and without pivoting:" << endl;
   for (int i = 0; i < dim; i++) {
-    cout << "Anp[" << i << "] - Ap[" << i << "] = " << Anp[i] - Ap[i] << endl;
+    cout << "i = " << i << ": " << 100.0*abs(1.0 - Ap[i]/Anp[i]) << endl;
   }
-*/
 
   return 0;
 }
@@ -118,47 +122,37 @@ void sub(vector <vector <double> > M, vector <double>& A, vector <double> B, int
   }
 }
 
-/* FUNCTION FOR GAUSSIAN ELIMINATION WITH PARTIAL PIVOTING	
-! Subroutine for Gaussian elimination with partial pivoting
-	! --------------------------------------------------
-	SUBROUTINE gausspivot(M, A, B, dim)
-		implicit none
-		integer dim, maxdim, i, j, k
-		integer maxindex
-		parameter (maxdim=50)
-		double precision M(maxdim,maxdim), A(maxdim), B(maxdim)
-		double precision maxvalue, swap
-
-		DO k = 1, (dim-1)					! ELIMINATION
-			maxvalue = 0.d0
-			DO i = k, dim
-				IF (M(i,k).gt.maxvalue) THEN
-					maxvalue = M(i,k)
-					maxindex = i
-				END IF
-			END DO
-			IF (maxindex.ne.k) THEN
-				DO j = 1, dim
-					swap = M(maxindex,j)
-					M(maxindex,j) = M(k,j)
-					M(k,j) = swap
-				END DO
-				swap = B(maxindex)
-				B(maxindex) = B(k)
-				B(k) = swap
-			END IF
-			DO i = (k+1), dim				! Loops through rows.
-				M(i,k) = M(i,k)/M(k,k)		! This would be zero, so we'll store ratio here.
-				DO j = (k+1), dim			! Loops through columns.
-					M(i,j) = M(i,j) - M(i,k)*M(k,j)
-				END DO
-				B(i) = B(i) - M(i,k)*B(k)
-			END DO
-		END DO
-		CALL sub(M, A, B, dim)				! SUBSTITUTION
-	RETURN
-	END
-*/
+void gaussPivot(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim) {
+  double maxvalue, swap;
+  int maxindex;
+  for (int k = 0; k < dim; k++) {  // Elimination
+    maxvalue = 0.0;
+    for (int i = k; i < dim; i++) {
+      if (M[i][k] > maxvalue) {
+        maxvalue = M[i][k];
+        maxindex = i;
+      }
+    }
+    if (maxindex != k) {
+      for(int j = 0; j < dim; j++) {
+        swap = M[maxindex][j];
+	M[maxindex][j] = M[k][j];
+	M[k][j] = swap;
+      }
+      swap = B[maxindex];
+      B[maxindex] = B[k];
+      B[k] = swap;
+    }
+    for (int i = k+1; i < dim; i++) {  // Loops through rows. go to NoPivot now?
+      M[i][k] = M[i][k]/M[k][k];        // This would be zero, so we'll store ratio here.
+      for (int j = k+1; j < dim; j++) { // Loops through columns.
+        M[i][j] = M[i][j] - M[i][k]*M[k][j];
+      }
+      B[i] = B[i] - M[i][k]*B[k];
+    }
+  }
+  sub(M, A, B, dim);  // substitution
+}
 
 void gaussNoPivot(vector <vector <double> > M, vector <double>& A, vector <double> B, int dim) {
   for (int k = 0; k < dim; k++) {       // Elimination
@@ -170,5 +164,5 @@ void gaussNoPivot(vector <vector <double> > M, vector <double>& A, vector <doubl
       B[i] = B[i] - M[i][k]*B[k];
     }
   }
-  sub(M, A, B, dim);
+  sub(M, A, B, dim);  // substitution
 }
